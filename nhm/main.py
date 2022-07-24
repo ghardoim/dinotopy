@@ -8,7 +8,7 @@ class NaturalHistoryMuseum:
         self.__url = "https://www.nhm.ac.uk/discover/dino-directory"
         self.__dino_list = list(map(lambda dino: dino.text.strip().lower(), 
             BeautifulSoup(rq.get(f"{self.__url}/name/name-az-all.html").text, "html.parser") \
-                            .find_all("p", attrs={"class": "dinosaurfilter--name dinosaurfilter--name-unhyphenated"})))
+                .find_all("p", attrs={"class": "dinosaurfilter--name dinosaurfilter--name-unhyphenated"})))
 
     @property
     def dinolist(self) -> list:
