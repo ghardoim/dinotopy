@@ -25,23 +25,14 @@ class NaturalHistoryMuseum:
 
         return dict(zip(dino[::2], dino[1::2]))
 
-    def __download_files_from(self, htmlsaur:BeautifulSoup, name:str) -> None:
+    def __save_infos_about(self, htmlsaur:BeautifulSoup, name:str) -> None:
             about = self.__get_text_from(htmlsaur, "content-container")
             if about:
                 with open(f"archives/{name}.txt", "w", encoding="utf8") as dinofile:
                     for item in about.split("\n"): dinofile.write(f"{item.strip()}\n")
 
-            image = htmlsaur.find(attrs={"class":"dinosaur--image"})["src"]
-            if image: open(f"imgs/{name}.png", "wb").write(rq.get(image).content)
-
-            silhouette = htmlsaur.find(attrs={"class":"dinosaur--comparison-dino"})
-            if silhouette:
-                with open(f"imgs/svgs/{silhouette.img['alt']}.svg", "wb") as dinosilhouette:
-                    dinosilhouette.write(rq.get(f"https://www.nhm.ac.uk/{silhouette.img['src']}").content)
-
     def extract_data(self, download:bool=False) -> None:
         dinos = []
-
         for dinoname in tqdm(self.__dino_list):
             htmlsaur, dino = BeautifulSoup(rq.get(f"{self.__url}/{dinoname}.html").text, "html.parser"), {}
 
@@ -53,8 +44,7 @@ class NaturalHistoryMuseum:
                 dino |= self.__handle_html(htmlsaur, item)
 
             dinos.append(dino)
-            if download: self.__download_files_from(htmlsaur, dinoname)
-
+            if download: self.__save_infos_about(htmlsaur, dinoname)
         pd.json_normalize(dinos).to_excel("data/nhm-dataset.xlsx", index=False)
 
 NaturalHistoryMuseum().extract_data()
