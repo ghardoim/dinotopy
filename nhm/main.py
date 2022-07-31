@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from hards import lstrip
 from tqdm import tqdm
 import requests as rq
 import pandas as pd
@@ -6,7 +7,7 @@ import pandas as pd
 class NaturalHistoryMuseum:
     def __init__(self) -> None:
         self.__url = "https://www.nhm.ac.uk/discover/dino-directory"
-        self.__dino_list = list(map(lambda dino: dino.text.strip().lower(), 
+        self.__dino_list = list(map(lambda dino: lstrip(dino.text),
             BeautifulSoup(rq.get(f"{self.__url}/name/name-az-all.html").text, "html.parser") \
                 .find_all("p", attrs={"class": "dinosaurfilter--name dinosaurfilter--name-unhyphenated"})))
 
@@ -16,10 +17,10 @@ class NaturalHistoryMuseum:
 
     def __get_text_from(self, htmlsaur:BeautifulSoup, classaur:str) -> str:
         dino = htmlsaur.find(class_=f"dinosaur--{classaur}")
-        return dino.text.lower().strip() if dino is not None else ""
+        return lstrip(dino.text) if dino is not None else ""
 
     def __handle_html(self, htmlsaur:BeautifulSoup, classaur:str) -> dict:
-        dino = self.__get_text_from(htmlsaur, classaur)        
+        dino = self.__get_text_from(htmlsaur, classaur)
         dino = dino.replace("\t", "").replace(",\n\n", ", ").replace("\n\n", "\n").split("\n")
         dino = list(map(lambda dino: dino.replace(":", "").strip(), dino))
 
@@ -31,20 +32,19 @@ class NaturalHistoryMuseum:
                 with open(f"archives/{name}.txt", "w", encoding="utf8") as dinofile:
                     for item in about.split("\n"): dinofile.write(f"{item.strip()}\n")
 
-    def extract_data(self, download:bool=False) -> None:
+    def extract_data(self) -> None:
         dinos = []
         for dinoname in tqdm(self.__dino_list):
             htmlsaur, dino = BeautifulSoup(rq.get(f"{self.__url}/{dinoname}.html").text, "html.parser"), {}
-
             dino["pronunciation"] = self.__get_text_from(htmlsaur, "pronunciation")
             dino["meaning"] = self.__get_text_from(htmlsaur, "meaning")[1:-1]
-            dino["name"] = dinoname
+            dino["name"], dino["link"] = dinoname, f"{self.__url}/{dinoname}.html"
 
             for item in ["description", "info", "taxonomy"]:
                 dino |= self.__handle_html(htmlsaur, item)
-
             dinos.append(dino)
-            if download: self.__save_infos_about(htmlsaur, dinoname)
+
+            self.__save_infos_about(htmlsaur, dinoname)
         pd.json_normalize(dinos).to_excel("data/nhm-dataset.xlsx", index=False)
 
 NaturalHistoryMuseum().extract_data()
