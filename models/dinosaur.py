@@ -8,7 +8,7 @@ class WhenLived(BaseModel):
 class TaxonomicDetails(BaseModel):
     taxonomy: List[str] = Field(..., description="The entire taxonomic tree of the dinosaur")
     named_by: str = Field(..., description="Just the name of who named the dinosaur")
-    named_in: str = Field(..., description="Just the year in which the dinosaur was named")
+    named_in: int = Field(..., description="Just the year in which the dinosaur was named")
     type_species: str = Field(..., description="Type of specimen of the dinosaur")
 
 class Dinosaur(BaseModel):
@@ -19,8 +19,7 @@ class Dinosaur(BaseModel):
     diet: str = Field(..., description="Diet of the dinosaur")
     when_lived: WhenLived = Field(..., description="When the dinosaur lived")
     found_in: str = Field(..., description="Where the dinosaur was found")
-    size: str = Field(..., description="Size of the dinosaur")
+    size: float = Field(..., description="Size of the dinosaur")
     type_of: str = Field(..., description="Type of the dinosaur")
-    length: str = Field(..., description="Length of the dinosaur")
-    description: str = Field(..., description="All text content about the dinosaur")
+    length: float = Field(..., description="Length of the dinosaur")
     details: TaxonomicDetails = Field(..., description="Taxonomic details of the dinosaur")
